@@ -206,4 +206,50 @@ describe('runTests', () => {
     assert.equal(failingResults.length, 0);
     assert.equal(skippedResults.length, 0);
   });
+
+  it('return value assertion - pass', () => {
+    const files = [getTestFilePath('return-assertion-pass.md')];
+
+    const config = {};
+    const results = doctest.runTests(files, config);
+
+    const passingResults = results.filter(result => result.status === 'pass');
+
+    assert.equal(passingResults.length, 1, JSON.stringify(results, null, 2));
+  });
+
+  it('return value assertion - fail', () => {
+    const files = [getTestFilePath('return-assertion-fail.md')];
+    const config = {};
+    const results = doctest.runTests(files, config);
+
+    const passingResults = results.filter(result => result.status === 'pass');
+    const failingResults = results.filter(result => result.status === 'fail');
+
+    assert.equal(passingResults.length, 0, JSON.stringify(results, null, 2));
+    assert.equal(failingResults.length, 1, JSON.stringify(results, null, 2));
+  });
+
+  it('log assertion - pass', () => {
+    const files = [getTestFilePath('log-assertion-pass.md')];
+
+    const config = {};
+    const results = doctest.runTests(files, config);
+
+    const passingResults = results.filter(result => result.status === 'pass');
+
+    assert.equal(passingResults.length, 6, JSON.stringify(results, null, 2));
+  });
+
+  it('log assertion - fail', () => {
+    const files = [getTestFilePath('log-assertion-fail.md')];
+    const config = {};
+    const results = doctest.runTests(files, config);
+
+    const passingResults = results.filter(result => result.status === 'pass');
+    const failingResults = results.filter(result => result.status === 'fail');
+
+    assert.equal(passingResults.length, 0, JSON.stringify(results, null, 2));
+    assert.equal(failingResults.length, 4, JSON.stringify(results, null, 2));
+  });
 });

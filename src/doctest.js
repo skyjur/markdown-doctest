@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs');
+const assert = require("assert");
 const vm = require('vm');
 const babel = require('babel-core');
 import es2015 from 'babel-preset-es2015';
@@ -43,11 +44,18 @@ function makeTestSandbox (config) {
     return config.require[moduleName];
   }
 
+  const logStack = []
+
   const sandboxConsole = {
-    log: () => null
+    log: (...value) => logStack.push(value)
   };
 
-  const sandboxGlobals = {require: sandboxRequire, console: sandboxConsole};
+  const sandboxGlobals = {
+    __logStackPop: () => logStack.pop(), 
+    __deepStrictEqual: assert.deepStrictEqual,
+    require: sandboxRequire, 
+    console: sandboxConsole
+  };
   const sandbox = Object.assign({}, sandboxGlobals, config.globals);
 
   return sandbox;

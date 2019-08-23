@@ -5,6 +5,12 @@ const isEndOfSnippet = line => line.trim() === '```';
 const isSkip = line => line.trim() === '<!-- skip-example -->';
 const isCodeSharedInFile = line => line.trim() === '<!-- share-code-between-examples -->';
 
+const lastLinePattern = () => /[^\n]+\r?\n$/m;
+const returnAssertionPattern = () => /^\s*\/\/\s?\=\>(.+)\r?$/;
+const logAssertionPattern = () => /^\s*\/\/\s?log\s?=>(.+)\r?$/;
+const isReturnAssertion = line => returnAssertionPattern().test(line);
+const isLogAssertion = line => logAssertionPattern().test(line);
+
 function startNewSnippet (snippets, fileName, lineNumber) {
   const skip = snippets.skip;
   snippets.skip = false;
@@ -20,6 +26,36 @@ function addLineToLastSnippet (line) {
 
     if (lastSnippet && !lastSnippet.complete) {
       lastSnippet.code += line + '\n';
+    }
+
+    return snippets;
+  };
+}
+
+function addReturnAssertionToLastSnippet (line) {
+  return function addLine (snippets) {
+    const lastSnippet = snippets.snippets[snippets.snippets.length - 1];
+
+    if (lastSnippet && !lastSnippet.complete) {
+      lastSnippet.code = lastSnippet.code.replace(lastLinePattern(), lastLine => {
+        const expression = line.match(returnAssertionPattern())[1];
+        return 'var __returnValue=' + lastLine + '\n' 
+          + `__deepStrictEqual(__returnValue,${expression})\n`;
+      })
+    }
+
+    return snippets;
+  };
+}
+
+function addLogAssertionToLastSnippet (line) {
+  return function addLine (snippets) {
+    const lastSnippet = snippets.snippets[snippets.snippets.length - 1];
+
+    if (lastSnippet && !lastSnippet.complete) {
+      const expression = line.match(logAssertionPattern())[1];
+      lastSnippet.code +=
+        `__deepStrictEqual(Array.from(__logStackPop()),[${expression.trim()}])\n`;
     }
 
     return snippets;
@@ -63,6 +99,14 @@ function parseLine (line) {
 
   if (isCodeSharedInFile(line)) {
     return shareCodeInFile;
+  }
+
+  if(isReturnAssertion(line)) {
+    return addReturnAssertionToLastSnippet(line);
+  }
+
+  if(isLogAssertion(line)) {
+    return addLogAssertionToLastSnippet(line);
   }
 
   return addLineToLastSnippet(line);
