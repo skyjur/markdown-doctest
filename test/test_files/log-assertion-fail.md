@@ -1,21 +1,21 @@
 ```js
 console.log(1);
-// log => 2
+// output: 2
 ```
 
 ```js
 console.log(1);
 console.log(2);
-// log => 1
-// log => 3
+// output: 1
+// output: 3
 ```
 
 ```js
 console.log("multi", "param")
-// log => "multi", "wrong-param"
+// output: "multi", "wrong-param"
 ```
 
 ```js
 console.log({"deep": {"value": 1}})
-// log => {"deep": {"value": 2}}
+// output: {"deep": {"value": 2}}
 ```

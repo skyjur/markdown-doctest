@@ -50,7 +50,7 @@ function makeTestSandbox (config) {
 
   const sandboxGlobals = {
     __logStackPop: () => logStack.shift(), 
-    __deepStrictEqual: assert.deepStrictEqual,
+    __assertEqual: assert.deepEqual,
     require: sandboxRequire, 
     console: sandboxConsole
   };

@@ -253,4 +253,27 @@ describe('runTests', () => {
     assert.equal(passingResults.length, 0, JSON.stringify(results, null, 2));
     assert.equal(failingResults.length, 4, JSON.stringify(results, null, 2));
   });
+
+  it('multiline output assertion - pass', () => {
+    const files = [getTestFilePath('multiline-output-assertion-pass.md')];
+
+    const config = {};
+    const results = doctest.runTests(files, config);
+
+    const passingResults = results.filter(result => result.status === 'pass');
+
+    assert.equal(passingResults.length, 2, JSON.stringify(results, null, 2));
+  });
+
+  it('multiline output assertion - fail', () => {
+    const files = [getTestFilePath('multiline-output-assertion-fail.md')];
+    const config = {};
+    const results = doctest.runTests(files, config);
+
+    const passingResults = results.filter(result => result.status === 'pass');
+    const failingResults = results.filter(result => result.status === 'fail');
+
+    assert.equal(passingResults.length, 0, JSON.stringify(results, null, 2));
+    assert.equal(failingResults.length, 2, JSON.stringify(results, null, 2));
+  });
 });

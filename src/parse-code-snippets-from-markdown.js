@@ -7,9 +7,9 @@ const isCodeSharedInFile = line => line.trim() === '<!-- share-code-between-exam
 
 const lastLinePattern = () => /[^\n]+\r?\n$/m;
 const returnAssertionPattern = () => /^\s*\/\/\s?\=\>(.+)\r?$/;
-const logAssertionPattern = () => /^\s*\/\/\s?log\s?=>(.+)\r?$/;
+const outputAssertionPattern = () => /^\s*\/\/ output: (.+)\r?$/;
 const isReturnAssertion = line => returnAssertionPattern().test(line);
-const isLogAssertion = line => logAssertionPattern().test(line);
+const isOutputAssertion = line => outputAssertionPattern().test(line);
 
 function startNewSnippet (snippets, fileName, lineNumber) {
   const skip = snippets.skip;
@@ -25,11 +25,39 @@ function addLineToLastSnippet (line) {
     const lastSnippet = snippets.snippets[snippets.snippets.length - 1];
 
     if (lastSnippet && !lastSnippet.complete) {
-      lastSnippet.code += line + '\n';
+      if(line.trim() === '/*') {
+        lastSnippet.multiLineCommentOpen = true;
+        lastSnippet.code += line + '\n';
+      } else if(line.trim() === '*/') {
+        lastSnippet.multiLineCommentOpen = false;
+        lastSnippet.isMultiLineOutputAssertion = false;
+        lastSnippet.code += line + '\n'
+      } else if(lastSnippet.isMultiLineOutputAssertion && lastSnippet.multiLineCommentOpen) {
+        lastSnippet.code += '*/' + buildOutputAssertion(line.trim()) + '/*\n';
+      } else if(lastSnippet.isMultiLineOutputAssertion && !lastSnippet.multiLineCommentOpen) {
+        if(line.trim().startsWith('//')) {
+          lastSnippet.code += buildOutputAssertion(line.replace('//', '').trim());
+        } else {
+            lastSnippet.isMultiLineOutputAssertion = false;
+            lastSnippet.code += line + '\n';
+          }
+      } else if(lastSnippet.multiLineCommentOpen && line.trim() === "output:") {
+        lastSnippet.code += line + '\n';
+        lastSnippet.isMultiLineOutputAssertion = true;
+      } else if(line.trim() === "// output:") {
+        lastSnippet.isMultiLineOutputAssertion = true;
+        lastSnippet.code += line + '\n';
+      } else {
+        lastSnippet.code += line + '\n';
+      }
     }
 
     return snippets;
   };
+}
+
+function buildOutputAssertion(expression) {
+  return `__assertEqual(Array.from(__logStackPop() || [undefined]),[${expression.trim()}])\n`;
 }
 
 function addReturnAssertionToLastSnippet (line) {
@@ -40,7 +68,7 @@ function addReturnAssertionToLastSnippet (line) {
       lastSnippet.code = lastSnippet.code.replace(lastLinePattern(), lastLine => {
         const expression = line.match(returnAssertionPattern())[1];
         return 'var __returnValue=' + lastLine + '\n' 
-          + `__deepStrictEqual(__returnValue,${expression})\n`;
+          + `__assertEqual(__returnValue,${expression})\n`;
       })
     }
 
@@ -48,14 +76,27 @@ function addReturnAssertionToLastSnippet (line) {
   };
 }
 
-function addLogAssertionToLastSnippet (line) {
+function addOutputAssertionToLastSnippet (line) {
   return function addLine (snippets) {
     const lastSnippet = snippets.snippets[snippets.snippets.length - 1];
 
     if (lastSnippet && !lastSnippet.complete) {
-      const expression = line.match(logAssertionPattern())[1];
+      const expression = line.match(outputAssertionPattern())[1];
+      lastSnippet.code += buildOutputAssertion(expression);
+    }
+
+    return snippets;
+  };
+}
+
+function addMultilineOutputAssertionToLastSnippet (line) {
+  return function addLine (snippets) {
+    const lastSnippet = snippets.snippets[snippets.snippets.length - 1];
+
+    if (lastSnippet && !lastSnippet.complete) {
+      const expression = line.match(outputAssertionPattern())[1];
       lastSnippet.code +=
-        `__deepStrictEqual(Array.from(__logStackPop()),[${expression.trim()}])\n`;
+        `__assertEqual(Array.from(__logStackPop() || [undefined]),[${expression.trim()}])\n`;
     }
 
     return snippets;
@@ -105,8 +146,8 @@ function parseLine (line) {
     return addReturnAssertionToLastSnippet(line);
   }
 
-  if(isLogAssertion(line)) {
-    return addLogAssertionToLastSnippet(line);
+  if(isOutputAssertion(line)) {
+    return addOutputAssertionToLastSnippet(line);
   }
 
   return addLineToLastSnippet(line);
