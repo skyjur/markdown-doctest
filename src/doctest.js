@@ -3,9 +3,7 @@
 const fs = require('fs');
 const assert = require("assert");
 const vm = require('vm');
-const babel = require('babel-core');
-import es2015 from 'babel-preset-es2015';
-import stage0 from 'babel-preset-stage-0';
+const ts = require("typescript");
 
 const chalk = require('chalk');
 
@@ -51,7 +49,7 @@ function makeTestSandbox (config) {
   };
 
   const sandboxGlobals = {
-    __logStackPop: () => logStack.pop(), 
+    __logStackPop: () => logStack.shift(), 
     __deepStrictEqual: assert.deepStrictEqual,
     require: sandboxRequire, 
     console: sandboxConsole
@@ -89,14 +87,6 @@ function test (config, filename, sandbox) {
     let success = false;
     let stack = '';
 
-    const babelOptions = {
-      presets: [es2015]
-    };
-
-    if (config.babel && 'stage' in config.babel && config.babel.stage === 0) {
-      babelOptions.presets.push(stage0);
-    }
-
     let code = codeSnippet.code;
     let perSnippetSandbox;
 
@@ -109,9 +99,13 @@ function test (config, filename, sandbox) {
     }
 
     try {
-      if (config.babel !== false) {
-        code = babel.transform(codeSnippet.code, babelOptions).code;
-      }
+      code = ts.transpileModule(codeSnippet.code, {
+        reportDiagnostics: false,
+        compilerOptions: {
+          target: ts.ScriptTarget.ES2016,  // supported by node.js stable release
+          module: ts.ModuleKind.CommonJS,
+        }
+      }).outputText;
 
       vm.runInNewContext(code, perSnippetSandbox || sandbox);
 

@@ -169,7 +169,8 @@ describe('runTests', () => {
     assert.equal(a.value, 1);
   });
 
-  it('supports stage 0 examples', () => {
+  // es7 maybe some time later
+  it.skip('supports stage 0 examples', () => {
     const files = [getTestFilePath('es7.md')];
     const config = {
       babel: {

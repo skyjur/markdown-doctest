@@ -2,7 +2,7 @@
   "name": "markdown-doctest",
   "version": "0.9.1",
   "description": "Test all the code in your markdown docs!",
-  "main": "lib/doctest.js",
+  "main": "src/doctest.js",
   "files": [
     "lib",
     "src",
@@ -13,11 +13,8 @@
     "markdown-coverage": "bin/cmd-cover"
   },
   "scripts": {
-    "precompile-lib": "rm -rf lib/ && mkdir -p lib",
-    "compile-lib": "babel src -d lib",
     "test": "mocha --compilers js:babel-core/register",
-    "autotest": "mocha --watch -R min",
-    "prepublish": "npm run compile-lib"
+    "autotest": "mocha --watch -R min"
   },
   "repository": {
     "type": "git",
@@ -40,11 +37,10 @@
     "mocha": "^3.4.1"
   },
   "dependencies": {
-    "babel-core": "^6.4.0",
     "babel-preset-es2015": "^6.3.13",
-    "babel-preset-stage-0": "^6.5.0",
     "chalk": "^1.1.1",
     "glob": "^7.0.5",
-    "istanbul": "^0.4.3"
+    "istanbul": "^0.4.3",
+    "typescript": "^3.5.3"
   }
 }
