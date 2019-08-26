@@ -12,10 +12,10 @@ console.log(2);
 
 ```js
 console.log("multi", "param")
-// output: "multi", "wrong-param"
+// output: multi wrong-param
 ```
 
 ```js
 console.log({"deep": {"value": 1}})
-// output: {"deep": {"value": 2}}
+// output: {"deep":{"value":2}}
 ```

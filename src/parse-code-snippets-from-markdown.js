@@ -57,7 +57,7 @@ function addLineToLastSnippet (line) {
 }
 
 function buildOutputAssertion(expression) {
-  return `__assertEqual(Array.from(__logStackPop() || [undefined]),[${expression.trim()}])\n`;
+  return `__assertEqual(__consolePop(), '${expression.trim().replace(/'/g, '\'')}');\n`;
 }
 
 function addReturnAssertionToLastSnippet (line) {
@@ -68,7 +68,7 @@ function addReturnAssertionToLastSnippet (line) {
       lastSnippet.code = lastSnippet.code.replace(lastLinePattern(), lastLine => {
         const expression = line.match(returnAssertionPattern())[1];
         return 'var __returnValue=' + lastLine + '\n' 
-          + `__assertEqual(__returnValue,${expression})\n`;
+          + `__assertEqual(__returnValue,${expression});\n`;
       })
     }
 

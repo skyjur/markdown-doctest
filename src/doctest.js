@@ -49,7 +49,7 @@ function makeTestSandbox (config) {
   };
 
   const sandboxGlobals = {
-    __logStackPop: () => logStack.shift(), 
+    __consolePop: () => consoleLogArgsToString(logStack.shift() || []),
     __assertEqual: assert.deepEqual,
     require: sandboxRequire, 
     console: sandboxConsole
@@ -57,6 +57,14 @@ function makeTestSandbox (config) {
   const sandbox = Object.assign({}, sandboxGlobals, config.globals);
 
   return sandbox;
+}
+
+function consoleLogArgsToString(args) {
+  return args.map(arg => 
+    typeof arg === 'object'
+       ? JSON.stringify(arg) 
+       : arg
+  ).join(' ')
 }
 
 function testFile (config) {

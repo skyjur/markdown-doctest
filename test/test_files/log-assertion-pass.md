@@ -23,10 +23,10 @@ console.log(2);
 
 ```js
 console.log("multi", "param")
-// output: "multi", "param"
+// output: multi param
 ```
 
 ```js
 console.log({"deep": {"value": 1}})
-// output: {"deep": {"value": 1}}
+// output: {"deep":{"value":1}}
 ```
